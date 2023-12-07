@@ -1,4 +1,4 @@
-from pyimagesearch.centroidtracker import CentroidTracker
+from pyimagesearch.peopletracker import PeopleTracker
 from imutils.video import VideoStream
 from imutils.video import FPS
 from PIL import Image
@@ -68,10 +68,10 @@ rapid_detector = Detector(
 # instantiate our centroid tracker, then initialize a list to store
 # each of our dlib correlation trackers, followed by a dictionary to
 # map each unique object ID to a TrackableObject
-ct = CentroidTracker(maxDisappeared=40, maxDistance=50)
+pt = PeopleTracker(maxDisappeared=40, maxDistance=50)
 trackers = []
-trackableObjects = {}
 
+peopleCount = 0
 totalFrames = 0
 
 # start the frames per second throughput estimator
@@ -116,19 +116,21 @@ while True:
         status = "Detecting"
         trackers = []
 
-        # detections is tensor([[x,y,w,h,a,conf]])
+        # detections is tensor([[cx,cy,w,h,a,conf]])
         detections = rapid_detector.detect_one(pil_img=pil_frame)
 
         # loop over the detections
         for i in range(len(detections)):
             if len(detections[i]) == 6:
-                startX, startY, width, height, angle, conf = detections[i]
+                cX, cY, width, height, angle, conf = detections[i]
             else:
-                startX, startY, width, height, angle = detections[i][:5]
+                cX, cY, width, height, angle = detections[i][:5]
                 conf = -1
 
-            visualization.draw_xywha(frame, startX, startY, width, height, angle)
+            visualization.draw_xywha(frame, cX, cY, width, height, angle)
 
+            startX = int(cX - width / 2)
+            startY = int(cY - height / 2)
             endX = startX + width
             endY = startY + height
 
@@ -167,10 +169,10 @@ while True:
 
     # use the centroid tracker to associate the (1) old object
     # centroids with (2) the newly computed object centroids
-    objects = ct.update(rects)
+    objects, boxes = pt.update(rects)
 
     # loop over the tracked objects
-    for objectID, centroid in objects.items():
+    for (objectID, centroid), (_, box) in zip(objects.items(), boxes.items()):
         # draw both the ID of the object and the centroid of the
         # object on the output frame
         text = "ID {}".format(objectID)
@@ -184,15 +186,18 @@ while True:
             2,
         )
         cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
+        cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 5)
+
+    peopleCount = len(objects)
 
     cv2.putText(
         frame,
-        f"Count: {len(objects)}",
-        (10, H + 20),
+        "Count: {}".format(peopleCount),
+        (20, H - 20),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.6,
-        (0, 0, 255),
-        2,
+        2.0,
+        (0, 255, 0),
+        3,
     )
 
     # check to see if we should write the frame to disk

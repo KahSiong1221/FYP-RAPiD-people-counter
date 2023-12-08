@@ -77,41 +77,29 @@ class PeopleTracker:
         if len(self.objects) == 0:
             for i in range(0, len(inputCentroids)):
                 self.register(inputCentroids[i], rects[i])
-                
-		# else, we need to check if the input object already existed
-		# in the tracker
+
+        # else, we need to check if the input object already existed
+        # in the tracker
         else:
             objectIDs = list(self.objects.keys())
             objectCentroids = list(self.objects.values())
 
-			# compute the Euclidean distance between each pair of 
-			# existing centroids and input centroids
+            # calcualte the Euclidean distance between each pair of
+            # existing centroids and input centroids
             D = dist.cdist(np.array(objectCentroids), inputCentroids)
 
-            # in order to perform this matching we must (1) find the
-            # smallest value in each row and then (2) sort the row
-            # indexes based on their minimum values so that the row
-            # with the smallest value as at the *front* of the index
-            # list
-			# sort the row indexes 
+            # sort the rows and columns of the distance matrix
+            # according to the smallest values in each row
             rows = D.min(axis=1).argsort()
-
-            # next, we perform a similar process on the columns by
-            # finding the smallest value in each column and then
-            # sorting using the previously computed row index list
             cols = D.argmin(axis=1)[rows]
 
-            # in order to determine if we need to update, register,
-            # or unregister an object we need to keep track of which
-            # of the rows and column indexes we have already examined
+            # keep track of the rows and column indexed that have
+            # already examined
             usedRows = set()
             usedCols = set()
 
-            # loop over the combination of the (row, column) index
-            # tuples
             for row, col in zip(rows, cols):
-                # if we have already examined either the row or
-                # column value before, ignore it
+                # ignore the row or column that has already examined
                 if row in usedRows or col in usedCols:
                     continue
 
@@ -121,45 +109,39 @@ class PeopleTracker:
                 if D[row, col] > self.maxDistance:
                     continue
 
-                # otherwise, grab the object ID for the current row,
-                # set its new centroid, and reset the disappeared
-                # counter
+                # otherwise update the object with new centroid and
+                # reset disappeared counter
                 objectID = objectIDs[row]
                 self.objects[objectID] = inputCentroids[col]
                 self.boxes[objectID] = rects[col]
                 self.disappeared[objectID] = 0
 
-                # indicate that we have examined each of the row and
-                # column indexes, respectively
+                # mark examined each of the row and column indexes
+                # respectively
                 usedRows.add(row)
                 usedCols.add(col)
 
-            # compute both the row and column index we have NOT yet
+            # compute both the row and column index that has not yet
             # examined
             unusedRows = set(range(0, D.shape[0])).difference(usedRows)
             unusedCols = set(range(0, D.shape[1])).difference(usedCols)
 
-            # in the event that the number of object centroids is
-            # equal or greater than the number of input centroids
-            # we need to check and see if some of these objects have
-            # potentially disappeared
+            # if the num of object centroids >= the num of input
+            # centroids, checks for disappearing objects and register
+            # new object
             if D.shape[0] >= D.shape[1]:
-                # loop over the unused row indexes
                 for row in unusedRows:
-                    # grab the object ID for the corresponding row
+                    # get the object ID for the corresponding row
                     # index and increment the disappeared counter
                     objectID = objectIDs[row]
                     self.disappeared[objectID] += 1
 
-                    # check to see if the number of consecutive
-                    # frames the object has been marked "disappeared"
-                    # for warrants unregistering the object
+                    # if the object disappeared reach the max number of
+                    # consecutive frames, unregister the object
                     if self.disappeared[objectID] > self.maxDisappeared:
                         self.unregister(objectID)
 
-            # otherwise, if the number of input centroids is greater
-            # than the number of existing object centroids we need to
-            # register each new input centroid as a trackable object
+            # otherwise, register new objects
             else:
                 for col in unusedCols:
                     self.register(inputCentroids[col], rects[col])

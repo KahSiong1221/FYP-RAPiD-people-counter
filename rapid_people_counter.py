@@ -193,7 +193,7 @@ while True:
     cv2.putText(
         frame,
         "Count: {}".format(peopleCount),
-        (20, H - 20),
+        (20, 70),
         cv2.FONT_HERSHEY_SIMPLEX,
         2.0,
         (0, 255, 0),

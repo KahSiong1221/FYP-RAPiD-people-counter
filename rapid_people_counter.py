@@ -9,8 +9,8 @@ import cv2
 from PeopleTracker.peopletracker import PeopleTracker
 import dlib
 
-from api import Detector
-from utils import visualization
+from RAPiD.api import Detector
+from RAPiD.utils import visualization
 
 
 # Construct and parse command-line arguments
@@ -23,7 +23,6 @@ ap.add_argument(
     help="path to required pre-trained network weights",
 )
 ap.add_argument(
-    "-c",
     "--use-cuda",
     action="store_true",
     default=False,
@@ -224,3 +223,4 @@ else:
     vs.release()
 
 cv2.destroyAllWindows()
+

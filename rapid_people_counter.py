@@ -1,6 +1,7 @@
 from imutils.video import VideoStream
 from imutils.video import FPS
 from PIL import Image
+import imutils
 import numpy as np
 import argparse
 import time
@@ -93,7 +94,9 @@ while True:
     # if its the end of the video
     if args["input"] is not None and frame is None:
         break
-
+	
+    #frame = imutils.resize(frame, width=604)
+    
     # convert the frame from openCV format to PIL format for RAPiD
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     pil_frame = Image.fromarray(rgb)

@@ -2,7 +2,6 @@ from imutils.video import VideoStream
 from imutils.video import FPS
 from PIL import Image
 import imutils
-import numpy as np
 import argparse
 import time
 import cv2
@@ -29,8 +28,18 @@ ap.add_argument(
     default=False,
     help="use Nvidia CUDA GPU",
 )
-ap.add_argument("-i", "--input", type=str, help="path to optional input video file")
-ap.add_argument("-o", "--output", type=str, help="path to optional output video file")
+ap.add_argument(
+    "-i",
+    "--input",
+    type=str,
+    help="path to optional input video file",
+)
+ap.add_argument(
+    "-o",
+    "--output",
+    type=str,
+    help="path to optional output video file",
+)
 ap.add_argument(
     "-c",
     "--confidence",
@@ -45,14 +54,25 @@ ap.add_argument(
     default=30,
     help="# of skip frames between detections",
 )
+ap.add_argument(
+    "--framesize",
+    type=int,
+    default=1024,
+    help="frame size of input video/webcam",
+)
+ap.add_argument(
+    "--display",
+    action="store_true",
+    default=False,
+    help="display processed frames on screen",
+)
 args = vars(ap.parse_args())
 
-# Initialize the video stream (if not from webcam)
+# Initialize a video stream from webcam if no input video path
 if not args.get("input", False):
     print("[INFO] starting video stream...")
     vs = VideoStream(src=0).start()
     time.sleep(2.0)
-
 # Otherwise, grab a reference to the video file
 else:
     print("[INFO] opening video file...")
@@ -70,7 +90,7 @@ rapid_detector = Detector(
     model_name="rapid",
     weights_path=args["weights"],
     use_cuda=args["use_cuda"],
-    input_size=1024,
+    input_size=args["framesize"],
     conf_thres=args["confidence"],
 )
 
@@ -84,19 +104,18 @@ totalFrames = 0
 # Start the FPS throughput estimator
 fps = FPS().start()
 
-# Until the end of video file or video stream
+# Until the end of video file or video stream (webcam)
 while True:
-    # read the next frame from video file
+    # read the next frame from video file or webcam
     frame = vs.read()
-    # or video stream
     frame = frame[1] if args.get("input", False) else frame
 
     # if its the end of the video
     if args["input"] is not None and frame is None:
         break
-	
-    #frame = imutils.resize(frame, width=604)
-    
+
+    frame = imutils.resize(frame, width=args["framesize"])
+
     # convert the frame from openCV format to PIL format for RAPiD
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     pil_frame = Image.fromarray(rgb)
@@ -129,15 +148,14 @@ while True:
             else:
                 cX, cY, width, height, angle = detections[i][:5]
                 conf = -1
-            
-            # draw rotated identified bounding rectangles 
+
+            # draw rotated identified bounding rectangles
             visualization.draw_xywha(frame, cX, cY, width, height, angle)
 
             startX = int(cX - width / 2)
             startY = int(cY - height / 2)
             endX = startX + width
             endY = startY + height
-
 
             # instantiate dlib correlation tracker
             tracker = dlib.correlation_tracker()
@@ -166,7 +184,7 @@ while True:
 
     # for each tracked object
     for (objectID, centroid), (_, box) in zip(objects.items(), boxes.items()):
-        # display the centroid, bounding rectangles and ID 
+        # display the centroid, bounding rectangles and ID
         # of the object on the output frame
         text = "ID {}".format(objectID)
         cv2.putText(
@@ -198,12 +216,12 @@ while True:
         writer.write(frame)
 
     # show the output frame
-    cv2.imshow("Frame", frame)
-    key = cv2.waitKey(1) & 0xFF
-
-    # stop processing if the `q` key was pressed
-    if key == ord("q"):
-        break
+    if args["display"]:
+        cv2.imshow("Frame", frame)
+        key = cv2.waitKey(1) & 0xFF
+        # stop processing if the `q` key was pressed
+        if key == ord("q"):
+            break
 
     # update the FPS counter
     totalFrames += 1
@@ -213,6 +231,7 @@ while True:
 fps.stop()
 print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
 print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
+print("[INFO] {} frames are processed".format(totalFrames))
 
 # Release the video writer
 if writer is not None:
@@ -226,4 +245,3 @@ else:
     vs.release()
 
 cv2.destroyAllWindows()
-

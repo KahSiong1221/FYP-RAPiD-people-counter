@@ -5,6 +5,7 @@ import imutils
 import argparse
 import time
 import cv2
+import torch
 import numpy as np
 
 from PeopleTracker.peopletracker import PeopleTracker
@@ -14,6 +15,14 @@ import onnx, onnxruntime
 
 from RAPiD.api import Detector
 from RAPiD.utils import utils, visualization
+
+
+def post_processing(dts, pad_info, conf_thres=0.3, nms_thres=0.3):
+    assert isinstance(dts, torch.Tensor)
+    dts = dts[dts[:,5] >= conf_thres].cpu()
+    dts = utils.nms(dts, is_degree=True, nms_thres=nms_thres)
+    dts = utils.detection2original(dts, pad_info.squeeze())
+    return dts
 
 
 # Construct and parse command-line arguments
@@ -99,15 +108,18 @@ rapid_detector = Detector(
 )
 '''
 
-onnx_model = onnx.load(args["weights"])
-onnx.checker.check_model(onnx_model)
-
 ort_session = onnxruntime.InferenceSession(
-    "rapid.onnx", 
+    args["weights"], 
     providers=[
-        'TensorrtExecutionProvider', 
-        'CUDAExecutionProvider'
+    	'TensorrtExecutionProvider',
+    	'CUDAExecutionProvider',
+        'CPUExecutionProvider',
     ])
+    
+print("[INFO] ONNX runtime session providers: {}".format(ort_session.get_providers()))
+
+input_name = ort_session.get_inputs()[0].name
+output_name = ort_session.get_outputs()[0].name
 
 # Instantiate the people tracker and the dlib correliation trackers
 pt = PeopleTracker(maxDisappeared=40, maxDistance=50)
@@ -133,15 +145,15 @@ while True:
 
     # convert the frame from openCV format to PIL format for RAPiD
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    # pil_frame = Image.fromarray(rgb)
+    pil_frame = Image.fromarray(rgb)
 
-    img_resized, _, pad_info = utils.rect_to_square(frame, None, args["framesize"])
+    img_resized, _, pad_info = utils.rect_to_square(pil_frame, None, args["framesize"])
     im_numpy = np.expand_dims(np.array(img_resized), 0).transpose(0,3,1,2).astype(np.float32) / 255.0
 
 
     # get the frame size (width, height)
     if W is None or H is None:
-        (_, _, H, W) = im_numpy.shape
+        (W, H) = pil_frame.size
 
     # if output video is required, initialize the writer
     if args["output"] is not None and writer is None:
@@ -160,9 +172,12 @@ while True:
         # returns a list of [cx,cy,w,h,a,conf]
         ### detections = rapid_detector.detect_one(pil_img=pil_frame)
 
-        ort_inputs = {ort_session.get_inputs()[0].name: im_numpy}
-        ort_outs = ort_session.run(None, ort_inputs)
-        detections = ort_outs[0].squeeze(0)
+        ort_outputs = ort_session.run([], {input_name: im_numpy})
+        detections = ort_outputs[0].squeeze(0)
+        
+        # post-processing
+        detections = torch.from_numpy(detections)
+        detections = post_processing(detections, pad_info, conf_thres=0.3, nms_thres=0.3)
 
         for i in range(len(detections)):
             # parse the detection
@@ -249,6 +264,9 @@ while True:
     # update the FPS counter
     totalFrames += 1
     fps.update()
+    
+    if totalFrames % 100 == 0:
+    	print("[INFO] {} frames are processed".format(totalFrames))
 
 # Stop FPS timer and display FPS info
 fps.stop()

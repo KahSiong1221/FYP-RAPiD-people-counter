@@ -226,6 +226,9 @@ while True:
     # update the FPS counter
     totalFrames += 1
     fps.update()
+    
+    if totalFrames % 100 == 0:
+    	print("[INFO] {} frames are processed".format(totalFrames))
 
 # Stop FPS timer and display FPS info
 fps.stop()

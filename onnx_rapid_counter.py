@@ -184,12 +184,12 @@ for repeat_count in range(args["repeat"]):
 			# returns a list of [cx,cy,w,h,a,conf]
 			### detections = rapid_detector.detect_one(pil_img=pil_frame)
 
-            im_ortvalue = onnxruntime.OrtValue.ortvalue_from_numpy(im_numpy, 'cuda', 0)
-            
-            io_binding.bind_input(name='input', device_type=im_ortvalue.device_name(), device_id=0, element_type=np.float32, shape=im_ortvalue.shape(), buffer_ptr=im_ortvalue.data_ptr())
-            io_binding.bind_output('output')
+			im_ortvalue = onnxruntime.OrtValue.ortvalue_from_numpy(im_numpy, 'cuda', 0)
+
+			io_binding.bind_input(name='input', device_type=im_ortvalue.device_name(), device_id=0, element_type=np.float32, shape=im_ortvalue.shape(), buffer_ptr=im_ortvalue.data_ptr())
+			io_binding.bind_output('output')
 			# ort_outputs = ort_session.run([], {input_name: im_numpy})
-            ort_session.run_with_iobinding(io_binding)
+			ort_session.run_with_iobinding(io_binding)
 			detections = io_binding.copy_outputs_to_cpu()[0].squeeze(0)
 
 			# post-processing
@@ -242,17 +242,17 @@ for repeat_count in range(args["repeat"]):
 		    # display the centroid, bounding rectangles and ID
 		    # of the object on the output frame
 		    text = "ID {}".format(objectID)
-		    cv2.putText(
-		        frame,
-		        text,
-		        (centroid[0] - 10, centroid[1] - 10),
-		        cv2.FONT_HERSHEY_SIMPLEX,
-		        0.5,
-		        (0, 255, 0),
-		        2,
-		    )
-		    cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
-		    cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 5)
+			cv2.putText(
+				frame,
+				text,
+				(centroid[0] - 10, centroid[1] - 10),
+				cv2.FONT_HERSHEY_SIMPLEX,
+				0.5,
+				(0, 255, 0),
+				2,
+			)
+			cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
+			cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 5)
 
 		# calculate and show the number of people count on the output frame
 		peopleCount = len(objects)
@@ -272,11 +272,11 @@ for repeat_count in range(args["repeat"]):
 
 		# show the output frame
 		if args["display"]:
-		    cv2.imshow("Frame", frame)
-		    key = cv2.waitKey(1) & 0xFF
-		    # stop processing if the `q` key was pressed
-		    if key == ord("q"):
-		        break
+			cv2.imshow("Frame", frame)
+			key = cv2.waitKey(1) & 0xFF
+			# stop processing if the `q` key was pressed
+			if key == ord("q"):
+				break
 
 		# update the FPS counter
 		totalFrames += 1

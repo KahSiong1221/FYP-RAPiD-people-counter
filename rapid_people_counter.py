@@ -66,24 +66,13 @@ ap.add_argument(
     default=False,
     help="display processed frames on screen",
 )
+ap.add_argument(
+    "--repeat",
+    type=int,
+    default=1,
+    help="# of times to run the counter on the same input video",
+)
 args = vars(ap.parse_args())
-
-# Initialize a video stream from webcam if no input video path
-if not args.get("input", False):
-    print("[INFO] starting video stream...")
-    vs = VideoStream(src=0).start()
-    time.sleep(2.0)
-# Otherwise, grab a reference to the video file
-else:
-    print("[INFO] opening video file...")
-    vs = cv2.VideoCapture(args["input"])
-
-# Initialize the video writer
-writer = None
-
-# Initialize the frame dimensions
-W = None
-H = None
 
 # Initialize the RAPiD object detector
 rapid_detector = Detector(
@@ -94,154 +83,182 @@ rapid_detector = Detector(
     conf_thres=args["confidence"],
 )
 
-# Instantiate the people tracker and the dlib correliation trackers
-pt = PeopleTracker(maxDisappeared=40, maxDistance=50)
-trackers = []
+repeat_count = 0
+fps_results = []
 
-peopleCount = 0
-totalFrames = 0
+for repeat_count in range(args["repeat"]):
+	# Initialize a video stream from webcam if no input video path
+	if not args.get("input", False):
+		print("[INFO] starting video stream...")
+		vs = VideoStream(src=0).start()
+		time.sleep(2.0)
+	# Otherwise, grab a reference to the video file
+	else:
+		print("[INFO] opening video file...")
+		vs = cv2.VideoCapture(args["input"])
 
-# Start the FPS throughput estimator
-fps = FPS().start()
+	# Initialize the video writer
+	writer = None
 
-# Until the end of video file or video stream (webcam)
-while True:
-    # read the next frame from video file or webcam
-    frame = vs.read()
-    frame = frame[1] if args.get("input", False) else frame
+	# Initialize the frame dimensions
+	W = None
+	H = None
 
-    # if its the end of the video
-    if args["input"] is not None and frame is None:
-        break
+	# Instantiate the people tracker and the dlib correliation trackers
+	pt = PeopleTracker(maxDisappeared=40, maxDistance=50)
+	trackers = []
 
-    frame = imutils.resize(frame, width=args["framesize"])
+	peopleCount = 0
+	totalFrames = 0
 
-    # convert the frame from openCV format to PIL format for RAPiD
-    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    pil_frame = Image.fromarray(rgb)
+	# Start the FPS throughput estimator
+	fps = FPS().start()
 
-    # get the frame size (width, height)
-    if W is None or H is None:
-        (W, H) = pil_frame.size
+	# Until the end of video file or video stream (webcam)
+	while True:
+		# read the next frame from video file or webcam
+		frame = vs.read()
+		frame = frame[1] if args.get("input", False) else frame
 
-    # if output video is required, initialize the writer
-    if args["output"] is not None and writer is None:
-        fourcc = cv2.VideoWriter_fourcc(*"MJPG")
-        writer = cv2.VideoWriter(args["output"], fourcc, 30, (W, H), True)
+		# if its the end of the video
+		if args["input"] is not None and frame is None:
+		    break
 
-    # initialize the list of bounding rectangles returned by object
-    # detector or the correlation trackers
-    rects = []
+		frame = imutils.resize(frame, width=args["framesize"])
 
-    # run RAPiD object detection every N frames, N = num of skip frames
-    if totalFrames % args["skip_frames"] == 0:
-        trackers = []
+		# convert the frame from openCV format to PIL format for RAPiD
+		rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+		pil_frame = Image.fromarray(rgb)
 
-        # forward the frame through the neural network for person detection
-        # returns a list of [cx,cy,w,h,a,conf]
-        detections = rapid_detector.detect_one(pil_img=pil_frame)
+		# get the frame size (width, height)
+		if W is None or H is None:
+		    (W, H) = pil_frame.size
 
-        for i in range(len(detections)):
-            # parse the detection
-            if len(detections[i]) == 6:
-                cX, cY, width, height, angle, conf = detections[i]
-            else:
-                cX, cY, width, height, angle = detections[i][:5]
-                conf = -1
+		# if output video is required, initialize the writer
+		if args["output"] is not None and writer is None:
+			args["repeat"] = 1
+			fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+			writer = cv2.VideoWriter(args["output"], fourcc, 30, (W, H), True)
 
-            # draw rotated identified bounding rectangles
-            visualization.draw_xywha(frame, cX, cY, width, height, angle)
+		# initialize the list of bounding rectangles returned by object
+		# detector or the correlation trackers
+		rects = []
 
-            startX = int(cX - width / 2)
-            startY = int(cY - height / 2)
-            endX = startX + width
-            endY = startY + height
+		# run RAPiD object detection every N frames, N = num of skip frames
+		if totalFrames % args["skip_frames"] == 0:
+		    trackers = []
 
-            # instantiate dlib correlation tracker
-            tracker = dlib.correlation_tracker()
-            # create a dlib rectangle object by topleft corner and bottom right corner
-            rect = dlib.rectangle(startX, startY, endX, endY)
-            # start tracking the identified person
-            tracker.start_track(rgb, rect)
-            trackers.append(tracker)
+		    # forward the frame through the neural network for person detection
+		    # returns a list of [cx,cy,w,h,a,conf]
+		    detections = rapid_detector.detect_one(pil_img=pil_frame)
 
-    # run the correlation tracker instead of RAPiD detector
-    else:
-        for tracker in trackers:
-            # update the tracker and get the updated position
-            tracker.update(rgb)
-            pos = tracker.get_position()
-            # unpack the position object
-            startX = int(pos.left())
-            startY = int(pos.top())
-            endX = int(pos.right())
-            endY = int(pos.bottom())
-            # add bounding rectangle to the list
-            rects.append((startX, startY, endX, endY))
+		    for i in range(len(detections)):
+		        # parse the detection
+		        if len(detections[i]) == 6:
+		            cX, cY, width, height, angle, conf = detections[i]
+		        else:
+		            cX, cY, width, height, angle = detections[i][:5]
+		            conf = -1
 
-    # update centroids and bounding rectangles in person tracker
-    objects, boxes = pt.update(rects)
+		        # draw rotated identified bounding rectangles
+		        visualization.draw_xywha(frame, cX, cY, width, height, angle)
 
-    # for each tracked object
-    for (objectID, centroid), (_, box) in zip(objects.items(), boxes.items()):
-        # display the centroid, bounding rectangles and ID
-        # of the object on the output frame
-        text = "ID {}".format(objectID)
-        cv2.putText(
-            frame,
-            text,
-            (centroid[0] - 10, centroid[1] - 10),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.5,
-            (0, 255, 0),
-            2,
-        )
-        cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
-        cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 5)
+		        startX = int(cX - width / 2)
+		        startY = int(cY - height / 2)
+		        endX = startX + width
+		        endY = startY + height
 
-    # calculate and show the number of people count on the output frame
-    peopleCount = len(objects)
-    cv2.putText(
-        frame,
-        "Count: {}".format(peopleCount),
-        (20, 70),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        2.0,
-        (0, 255, 0),
-        3,
-    )
+		        # instantiate dlib correlation tracker
+		        tracker = dlib.correlation_tracker()
+		        # create a dlib rectangle object by topleft corner and bottom right corner
+		        rect = dlib.rectangle(startX, startY, endX, endY)
+		        # start tracking the identified person
+		        tracker.start_track(rgb, rect)
+		        trackers.append(tracker)
 
-    # write the output frame to disk if the write is on
-    if writer is not None:
-        writer.write(frame)
+		# run the correlation tracker instead of RAPiD detector
+		else:
+		    for tracker in trackers:
+		        # update the tracker and get the updated position
+		        tracker.update(rgb)
+		        pos = tracker.get_position()
+		        # unpack the position object
+		        startX = int(pos.left())
+		        startY = int(pos.top())
+		        endX = int(pos.right())
+		        endY = int(pos.bottom())
+		        # add bounding rectangle to the list
+		        rects.append((startX, startY, endX, endY))
 
-    # show the output frame
-    if args["display"]:
-        cv2.imshow("Frame", frame)
-        key = cv2.waitKey(1) & 0xFF
-        # stop processing if the `q` key was pressed
-        if key == ord("q"):
-            break
+		# update centroids and bounding rectangles in person tracker
+		objects, boxes = pt.update(rects)
 
-    # update the FPS counter
-    totalFrames += 1
-    fps.update()
+		# for each tracked object
+		for (objectID, centroid), (_, box) in zip(objects.items(), boxes.items()):
+		    # display the centroid, bounding rectangles and ID
+		    # of the object on the output frame
+		    text = "ID {}".format(objectID)
+		    cv2.putText(
+		        frame,
+		        text,
+		        (centroid[0] - 10, centroid[1] - 10),
+		        cv2.FONT_HERSHEY_SIMPLEX,
+		        0.5,
+		        (0, 255, 0),
+		        2,
+		    )
+		    cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
+		    cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 5)
 
-# Stop FPS timer and display FPS info
-fps.stop()
-print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
-print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
-print("[INFO] {} frames are processed".format(totalFrames))
+		# calculate and show the number of people count on the output frame
+		peopleCount = len(objects)
+		cv2.putText(
+		    frame,
+		    "Count: {}".format(peopleCount),
+		    (20, 70),
+		    cv2.FONT_HERSHEY_SIMPLEX,
+		    2.0,
+		    (0, 255, 0),
+		    3,
+		)
+
+		# write the output frame to disk if the write is on
+		if writer is not None:
+		    writer.write(frame)
+
+		# show the output frame
+		if args["display"]:
+		    cv2.imshow("Frame", frame)
+		    key = cv2.waitKey(1) & 0xFF
+		    # stop processing if the `q` key was pressed
+		    if key == ord("q"):
+		        break
+
+		# update the FPS counter
+		totalFrames += 1
+		fps.update()
+		
+		if totalFrames % 200 == 0:
+			print("[INFO] {} frames are processed".format(totalFrames))
+
+	# Stop FPS timer and display FPS info
+	fps.stop()
+	fps_results.append(round(fps.fps(), 2))
+	print("[INFO] [{}/{}] elapsed time: {:.2f}".format(repeat_count+1, args["repeat"], fps.elapsed()))
+	print("[INFO] [{}/{}] approx. FPS: {:.2f}".format(repeat_count+1, args["repeat"], fps.fps()))
+	print("[INFO] [{}/{}] processed frames: {}".format(repeat_count+1, args["repeat"], totalFrames))
+
+	# Stop the video stream if no input video
+	if not args.get("input", False):
+		vs.stop()
+	# Otherwise, release the video file pointer
+	else:
+		vs.release()
+
+	cv2.destroyAllWindows()
 
 # Release the video writer
 if writer is not None:
     writer.release()
 
-# Stop the video stream if no input video
-if not args.get("input", False):
-    vs.stop()
-# Otherwise, release the video file pointer
-else:
-    vs.release()
-
-cv2.destroyAllWindows()
+print("[INFO] FPS: ", fps_results)

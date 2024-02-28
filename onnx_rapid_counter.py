@@ -241,7 +241,7 @@ for repeat_count in range(args["repeat"]):
 		for (objectID, centroid), (_, box) in zip(objects.items(), boxes.items()):
 		    # display the centroid, bounding rectangles and ID
 		    # of the object on the output frame
-		    text = "ID {}".format(objectID)
+			text = "ID {}".format(objectID)
 			cv2.putText(
 				frame,
 				text,
@@ -268,7 +268,7 @@ for repeat_count in range(args["repeat"]):
 
 		# write the output frame to disk if the write is on
 		if writer is not None:
-		    writer.write(frame)
+			writer.write(frame)
 
 		# show the output frame
 		if args["display"]:

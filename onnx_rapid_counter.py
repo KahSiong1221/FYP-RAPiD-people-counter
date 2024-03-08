@@ -86,24 +86,17 @@ ap.add_argument(
 )
 args = vars(ap.parse_args())
 
-'''
-# Initialize the RAPiD object detector
-rapid_detector = Detector(
-    model_name="rapid",
-    weights_path=args["weights"],
-    use_cuda=args["use_cuda"],
-    input_size=args["framesize"],
-    conf_thres=args["confidence"],
-)
-'''
+"""
+	('TensorrtExecutionProvider', {
+    	'trt_max_workspace_size': 2147483648,
+    }),
+"""
+ort_providers = [
+    'CUDAExecutionProvider',
+    'CPUExecutionProvider',
+]
 
-ort_session = onnxruntime.InferenceSession(
-    args["weights"], 
-    providers=[
-    	'TensorrtExecutionProvider',
-    	'CUDAExecutionProvider',
-        'CPUExecutionProvider',
-    ])
+ort_session = onnxruntime.InferenceSession(args["weights"], providers=ort_providers)
     
 print("[INFO] ONNX runtime session providers: {}".format(ort_session.get_providers()))
 
@@ -184,6 +177,8 @@ for repeat_count in range(args["repeat"]):
 			### detections = rapid_detector.detect_one(pil_img=pil_frame)
 
 			ort_outputs = ort_session.run([], {input_name: im_numpy})
+			print(ort_outputs[0].shape)
+			print(ort_outputs[0])
 			detections = ort_outputs[0].squeeze(0)
 
 			# post-processing

@@ -102,7 +102,6 @@ print("[INFO] ONNX runtime session providers: {}".format(ort_session.get_provide
 
 input_name = ort_session.get_inputs()[0].name
 output_name = ort_session.get_outputs()[0].name
-io_binding = ort_session.io_binding()
 
 repeat_count = 0
 fps_results = []
@@ -177,13 +176,8 @@ for repeat_count in range(args["repeat"]):
 			# returns a list of [cx,cy,w,h,a,conf]
 			### detections = rapid_detector.detect_one(pil_img=pil_frame)
 
-			im_ortvalue = onnxruntime.OrtValue.ortvalue_from_numpy(im_numpy, 'cuda', 0)
-
-			io_binding.bind_input(name='input', device_type=im_ortvalue.device_name(), device_id=0, element_type=np.float32, shape=im_ortvalue.shape(), buffer_ptr=im_ortvalue.data_ptr())
-			io_binding.bind_output('output')
-			# ort_outputs = ort_session.run([], {input_name: im_numpy})
-			ort_session.run_with_iobinding(io_binding)
-			detections = io_binding.copy_outputs_to_cpu()[0].squeeze(0)
+			ort_outputs = ort_session.run([], {input_name: im_numpy})
+			detections = ort_outputs[0].squeeze(0)
 
 			# post-processing
 			detections = torch.from_numpy(detections)

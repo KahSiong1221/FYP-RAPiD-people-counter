@@ -306,4 +306,3 @@ if writer is not None:
     writer.release()
 
 print("[INFO] FPS: ", fps_results)
-

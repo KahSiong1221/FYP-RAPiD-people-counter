@@ -4,9 +4,9 @@ import torch
 import torch.nn as nn
 import torchvision.transforms.functional as tvf
 
-from ..utils.iou_mask import iou_mask, iou_rle
-from . import backbones
-from . import losses
+from utils.iou_mask import iou_mask, iou_rle
+import backbones
+import losses
 
 
 class RAPiD(nn.Module):

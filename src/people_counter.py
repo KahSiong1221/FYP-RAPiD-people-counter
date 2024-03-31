@@ -159,7 +159,7 @@ def main():
                 cv2.putText(
                     frame,
                     f"Count: {people_count}",
-                    (frame_width - 100, frame_height - 20),
+                    (frame_width - 300, frame_height - 30),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     2.0,
                     (0, 255, 0),

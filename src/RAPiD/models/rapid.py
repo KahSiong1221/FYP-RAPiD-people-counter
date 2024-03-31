@@ -27,7 +27,7 @@ class RAPiD(nn.Module):
         if backbone == 'dark53':
             self.backbone = backbones.Darknet53()
             print("Using backbone Darknet-53. Loading ImageNet weights....")
-            backbone_imgnet_path = './weights/dark53_imgnet.pth'
+            backbone_imgnet_path = './RAPiD/weights/dark53_imgnet.pth'
             if os.path.exists(backbone_imgnet_path):
                 pretrained = torch.load(backbone_imgnet_path)
                 self.load_state_dict(pretrained)

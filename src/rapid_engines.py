@@ -89,7 +89,12 @@ class ONNXEngine(RAPiDEngine):
         if execution_provider == "cuda" or execution_provider == "tensorrt":
             providers.insert(0, "CUDAExecutionProvider")
         if execution_provider == "tensorrt":
-            providers.insert(0, "TensorrtExecutionProvider")
+            trt_provider_options = {
+                "trt_max_workspace_size": 2 * 1024 * 1024 * 1024,
+                "trt_engine_cache_enable": True,
+                "trt_engine_cache_path": "trt_engine_cache",
+            }
+            providers.insert(0, ('TensorrtExecutionProvider', trt_provider_options))
 
         # Initialise RAPiD ONNX runtime session
         self.engine = onnxruntime.InferenceSession(model_path, providers=providers)

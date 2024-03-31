@@ -42,7 +42,7 @@ def draw_detection(frame, detection):
     rapid_visual.draw_xywha(frame, cX, cY, width, height, angle)
     cv2.putText(
         frame,
-        f"{conf:.2f}",
+        f"{conf*100:.1f}%",
         (int(cX), int(cY)),
         cv2.FONT_HERSHEY_SIMPLEX,
         1.0,
@@ -159,7 +159,7 @@ def main():
                 cv2.putText(
                     frame,
                     f"Count: {people_count}",
-                    (20, 70),
+                    (frame_width - 100, frame_height - 20),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     2.0,
                     (0, 255, 0),

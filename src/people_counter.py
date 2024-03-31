@@ -43,7 +43,7 @@ def draw_detection(frame, detection):
     cv2.putText(
         frame,
         f"{conf:.2f}",
-        (cX, cY),
+        (int(cX), int(cY)),
         cv2.FONT_HERSHEY_SIMPLEX,
         1.0,
         (255, 0, 0),

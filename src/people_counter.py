@@ -53,7 +53,7 @@ def draw_detection(frame, detection):
 
 
 def draw_tracking_object(frame, tracker):
-    pos = tracker.get_postion()
+    pos = tracker.get_position()
     # unpack position object
     startX = int(pos.left())
     startY = int(pos.top())

@@ -92,16 +92,21 @@ args = vars(ap.parse_args())
     }),
 """
 ort_providers = [
+	# 'TensorrtExecutionProvider',
     'CUDAExecutionProvider',
     'CPUExecutionProvider',
 ]
 
 ort_session = onnxruntime.InferenceSession(args["weights"], providers=ort_providers)
-    
-print("[INFO] ONNX runtime session providers: {}".format(ort_session.get_providers()))
 
 input_name = ort_session.get_inputs()[0].name
 output_name = ort_session.get_outputs()[0].name
+
+# new
+io_binding = ort_session.io_binding()
+# end new
+
+print("[INFO] ONNX runtime session providers: {}".format(ort_session.get_providers()))
 
 repeat_count = 0
 fps_results = []
@@ -153,6 +158,9 @@ for repeat_count in range(args["repeat"]):
 		img_resized, _, pad_info = utils.rect_to_square(pil_frame, None, args["framesize"])
 		im_numpy = np.expand_dims(np.array(img_resized), 0).transpose(0,3,1,2).astype(np.float32) / 255.0
 
+		# new
+		io_binding.bind_cpu_input(input_name, im_numpy)
+		io_binding.bind_output(output_name)
 
 		# get the frame size (width, height)
 		if W is None or H is None:
@@ -174,11 +182,16 @@ for repeat_count in range(args["repeat"]):
 
 			# forward the frame through the neural network for person detection
 			# returns a list of [cx,cy,w,h,a,conf]
-			### detections = rapid_detector.detect_one(pil_img=pil_frame)
 
-			ort_outputs = ort_session.run([], {input_name: im_numpy})
+			#ort_outputs = ort_session.run(None, {input_name: im_numpy})
+			#detections = ort_outputs[0].squeeze(0)
+			# new
+			ort_session.run_with_iobinding(io_binding)
+			ort_outputs = io_binding.copy_outputs_to_cpu()
+			# end new
 			detections = ort_outputs[0].squeeze(0)
-
+			
+			
 			# post-processing
 			detections = torch.from_numpy(detections)
 			detections = post_processing(detections, pad_info, conf_thres=0.3, nms_thres=0.3)

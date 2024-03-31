@@ -96,9 +96,11 @@ def main():
             vs = cv2.VideoCapture(args.input)
 
         if vs.isOpened():
+            print("isopen")
             frame_width = vs.get(cv2.CAP_PROP_FRAME_WIDTH)
             frame_height = vs.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
+        print(frame_width, frame_height)
         # Initialise a video writer if output video is requested
         if args.output is not None:
             # Only process the video once

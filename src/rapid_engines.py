@@ -97,7 +97,7 @@ class ONNXEngine(RAPiDEngine):
             providers.insert(0, "CUDAExecutionProvider")
         if execution_provider == "tensorrt":
             trt_provider_options = {
-                "trt_max_workspace_size": 1 * 1024 * 1024 * 1024,
+                "trt_max_workspace_size": 2 * 1024 * 1024 * 1024,
                 "trt_engine_cache_enable": True,
                 "trt_engine_cache_path": "trt_engine_cache",
             }

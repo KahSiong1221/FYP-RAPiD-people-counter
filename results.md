@@ -96,7 +96,7 @@ TODO:
     - ONNX+TensorRT (trt_max_workspace_size = 1GB)
         - Xavier NX > FPS: [13.42, 13.51, 13.49, 13.53, 13.6, 13.59, 13.52, 13.45, 13.54, 13.51]
         - Orin
-        - RTX4090
+        - RTX4090   > FPS:  [91.79, 92.02, 91.35, 92.0, 90.45, 91.66, 89.06, 88.35, 89.24, 91.95]
     - ONNX+TensorRT (trt_max_workspace_size = 2GB)
         - Xavier NX > FPS: [13.37, 13.44, 13.52, 13.39, 13.58, 13.53, 13.49, 13.53, 13.51, 13.43]
         - Orin

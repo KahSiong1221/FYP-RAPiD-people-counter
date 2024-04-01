@@ -79,7 +79,7 @@ TODO:
     - PyTorch+CPU
         * Xavier NX
         * Orin
-        * RTX4090
+        * RTX4090	> FPS:  [40.13, 40.19, 39.78, 40.33, 39.73, 40.68, 41.34, 40.87, 41.39, 40.82]
     - PyTorch+CUDA
         * Xavier NX
         * Orin

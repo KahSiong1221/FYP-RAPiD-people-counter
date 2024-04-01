@@ -71,6 +71,10 @@ def main():
     ap = argparser.create_parser()
     args = ap.parse_args()
 
+    if args.on_device and args.execution_provider == "cpu":
+        print("[WARNING] IOBinding only can be used when execution provider is CUDA")
+        args.on_device = False
+
     # Initialise the inference engine for RAPiD
     engine = rapid_engines.create_engine(
         model_path=args.weights,
@@ -78,6 +82,7 @@ def main():
         execution_provider=args.execution_provider,
         input_size=args.framesize,
         conf_thres=args.confidence,
+        on_device=args.on_device,
     )
 
     for recursion_count in range(args.recursion):

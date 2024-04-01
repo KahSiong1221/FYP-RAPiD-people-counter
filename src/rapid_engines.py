@@ -11,11 +11,15 @@ import torch
 MODEL_NAME = "rapid"
 
 
-def create_engine(model_path, engine_type, execution_provider, input_size, conf_thres):
+def create_engine(
+    model_path, engine_type, execution_provider, input_size, conf_thres, on_device
+):
     if engine_type == "pytorch":
         return PyTorchEngine(model_path, execution_provider, input_size, conf_thres)
     elif engine_type == "onnx":
-        return ONNXEngine(model_path, execution_provider, input_size, conf_thres)
+        return ONNXEngine(
+            model_path, execution_provider, input_size, conf_thres, on_device
+        )
     elif engine_type == "tensorrt":
         pass
     else:
@@ -79,9 +83,12 @@ class PyTorchEngine(RAPiDEngine):
 
 
 class ONNXEngine(RAPiDEngine):
-    def __init__(self, model_path, execution_provider, input_size, conf_thres):
+    def __init__(
+        self, model_path, execution_provider, input_size, conf_thres, on_device
+    ):
         # self.execution_provider = execution_provider
         super().__init__(input_size, conf_thres)
+        self.on_device = on_device
 
         # Configure ONNX execution providers
         providers = ["CPUExecutionProvider"]
@@ -94,10 +101,13 @@ class ONNXEngine(RAPiDEngine):
                 "trt_engine_cache_enable": True,
                 "trt_engine_cache_path": "trt_engine_cache",
             }
-            providers.insert(0, ('TensorrtExecutionProvider', trt_provider_options))
+            providers.insert(0, ("TensorrtExecutionProvider", trt_provider_options))
 
         # Initialise RAPiD ONNX runtime session
         self.engine = onnxruntime.InferenceSession(model_path, providers=providers)
+
+        if on_device:
+            self.io_binding = self.engine.io_binding()
 
         # Store input & output name of ONNX model
         self.input_name = self.engine.get_inputs()[0].name
@@ -131,8 +141,21 @@ class ONNXEngine(RAPiDEngine):
         return detections
 
     def infer(self, frame_input):
-        onnxrt_outputs = self.engine.run([], {self.input_name: frame_input})
-        detections = onnxrt_outputs[0].squeeze(0)
+        if self.on_device:
+            input_ortvalue = onnxruntime.OrtValue.ortvalue_from_numpy(
+                frame_input, "cuda", 0
+            )
+
+            self.io_binding.bind_ortvalue_input(self.input_name, input_ortvalue)
+            self.io_binding.bind_output(self.output_name, "cuda")
+
+            self.engine.run_with_iobinding(self.io_binding)
+
+            detections = self.io_binding.get_outputs()[0].numpy()
+        else:
+            detections = self.engine.run([], {self.input_name: frame_input})[0]
+
+        detections = detections.squeeze(0)
 
         # Post-processing
         return self.postprocess_detections(detections)

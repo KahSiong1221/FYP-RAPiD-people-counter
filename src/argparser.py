@@ -82,4 +82,11 @@ def create_parser():
         help="# of iterations to process the input",
     )
 
+    ap.add_argument(
+        "--on-device",
+        action="store_true",
+        default=False,
+        help="enable IOBinding, allowing copy inputs onto GPUs and pre-allocate memory for outputs prior the inference",
+    )
+
     return ap

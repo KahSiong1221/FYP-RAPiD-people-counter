@@ -100,15 +100,17 @@ TODO:
     - ONNX+TensorRT (trt_max_workspace_size = 2GB)
         - Xavier NX > FPS: [13.37, 13.44, 13.52, 13.39, 13.58, 13.53, 13.49, 13.53, 13.51, 13.43]
         - Orin
-        - RTX4090
+        - RTX4090   > FPS:  [92.38, 91.89, 92.52, 93.12, 92.78, 92.22, 92.83, 92.64, 94.15, 91.84]
     - ONNX+TensorRT (trt_max_workspace_size = 4GB)
         - Xavier NX > FPS: [13.45, 13.6, 13.66, 13.72, 13.66, 13.51, 13.52, 13.51, 13.5, 13.4]
         - Orin
-        - RTX4090
+        - RTX4090   > FPS:  [93.19, 92.34, 94.63, 92.72, 93.19, 92.72, 93.43, 92.58, 90.07, 95.07]
+    - ONNX+TensorRT (trt_max_workspace_size = 8GB)
+        - RTX4090   > FPS:  [91.78, 92.73, 90.97, 91.7, 90.76, 93.86, 91.63, 90.95, 92.17, 90.83]
     - ONNX+TensorRT (trt_max_workspace_size = 2GB & IOBinding)
         - Xavier NX > FPS: [13.3, 13.37, 13.31, 13.36, 13.29, 13.29, 13.35, 13.33, 13.33, 13.39]
         - Orin
-        - RTX4090
+        - RTX4090   > FPS:  [90.64, 91.39, 91.61, 91.48, 90.96, 93.0, 92.08, 92.79, 91.44, 92.46]
     - TensorRT
         - Xavier NX
         - Orin

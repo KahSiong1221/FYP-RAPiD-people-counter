@@ -12,13 +12,24 @@ MODEL_NAME = "rapid"
 
 
 def create_engine(
-    model_path, engine_type, execution_provider, input_size, conf_thres, on_device
+    model_path,
+    engine_type,
+    execution_provider,
+    input_size,
+    conf_thres,
+    on_device,
+    trt_max_workspace_size,
 ):
     if engine_type == "pytorch":
         return PyTorchEngine(model_path, execution_provider, input_size, conf_thres)
     elif engine_type == "onnx":
         return ONNXEngine(
-            model_path, execution_provider, input_size, conf_thres, on_device
+            model_path,
+            execution_provider,
+            input_size,
+            conf_thres,
+            on_device,
+            trt_max_workspace_size,
         )
     elif engine_type == "tensorrt":
         pass

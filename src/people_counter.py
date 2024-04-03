@@ -132,7 +132,7 @@ def main():
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             # Run RAPiD every N frames
-            if frame_count % args.skip_frames == 0:
+            if frame_count % 1 == 0:
                 # Reset trackers
                 trackers.clear()
 

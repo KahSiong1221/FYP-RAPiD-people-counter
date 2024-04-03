@@ -84,7 +84,13 @@ class PyTorchEngine(RAPiDEngine):
 
 class ONNXEngine(RAPiDEngine):
     def __init__(
-        self, model_path, execution_provider, input_size, conf_thres, on_device
+        self,
+        model_path,
+        execution_provider,
+        input_size,
+        conf_thres,
+        on_device,
+        trt_max_workspace_size,
     ):
         # self.execution_provider = execution_provider
         super().__init__(input_size, conf_thres)
@@ -97,7 +103,7 @@ class ONNXEngine(RAPiDEngine):
             providers.insert(0, "CUDAExecutionProvider")
         if execution_provider == "tensorrt":
             trt_provider_options = {
-                "trt_max_workspace_size": 2 * 1024 * 1024 * 1024,
+                "trt_max_workspace_size": trt_max_workspace_size * 1024 * 1024 * 1024,
                 "trt_engine_cache_enable": True,
                 "trt_engine_cache_path": "trt_engine_cache",
             }

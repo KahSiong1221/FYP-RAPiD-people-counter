@@ -89,4 +89,11 @@ def create_parser():
         help="enable IOBinding, allowing copy inputs onto GPUs and pre-allocate memory for outputs prior the inference",
     )
 
+    ap.add_argument(
+        "--trt_max_workspace_size",
+        type=int,
+        default=2,
+        help="maximum workspace size of TensorRT engine",
+    )
+
     return ap

@@ -104,10 +104,14 @@ class ONNXEngine(RAPiDEngine):
             providers.insert(0, ("TensorrtExecutionProvider", trt_provider_options))
 
         sess_opt = onnxruntime.SessionOptions()
+        sess_opt.execution_mode = onnxruntime.ExecutionMode.ORT_PARALLEL
+        sess_opt.inter_op_num_threads = 8
         sess_opt.inter_op_num_threads = 8
 
         # Initialise RAPiD ONNX runtime session
-        self.engine = onnxruntime.InferenceSession(model_path, providers=providers, sess_options=sess_opt)
+        self.engine = onnxruntime.InferenceSession(
+            model_path, providers=providers, sess_options=sess_opt
+        )
 
         if on_device:
             self.io_binding = self.engine.io_binding()

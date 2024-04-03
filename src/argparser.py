@@ -90,7 +90,7 @@ def create_parser():
     )
 
     ap.add_argument(
-        "--trt_max_workspace_size",
+        "--trt-max-workspace-size",
         type=int,
         default=2,
         help="maximum workspace size of TensorRT engine",

@@ -129,6 +129,9 @@ def main():
             if args.input is not None and frame is None:
                 break
 
+            # DEBUG
+            print(f"FRAME type:{type(frame)} shape:{frame.shape} value:{frame}")
+
             # dlib and PIL Image conversion need RGB ordering
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -140,10 +143,25 @@ def main():
                 # Convert and resize frame
                 frame_input = engine.preprocess_frame(frame_rgb)
 
+                # DEBUG
+                print(
+                    f"FRAME INPUT type:{type(frame_input)} shape:{frame_input.shape} value:{frame_input}"
+                )
+
                 detections = engine.infer(frame_input)
+
+                # DEBUG
+                print(
+                    f"DTS POST-PROCESSED type:{type(detections)} shape:{detections.shape} value:{detections}"
+                )
 
                 # Loop over each detection
                 for dt in detections:
+
+                    # DEBUG
+                    print(
+                        f"DT type:{type(dt)} shape:{dt.shape} value:{dt}"
+                    )
                     # Initialise dlib tracker to track detection
                     tracker = dlib_tracker_init(dt, frame_rgb)
                     trackers.append(tracker)

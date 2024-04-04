@@ -29,6 +29,13 @@ def create_parser():
     )
 
     ap.add_argument(
+        "--precision",
+        default="fp32",
+        choices=["fp32", "fp16", "int8"],
+        help="Precision format used for the model's weights and activations",
+    )
+
+    ap.add_argument(
         "-i",
         "--input",
         type=str,

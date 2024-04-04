@@ -19,6 +19,7 @@ def create_engine(
     conf_thres,
     on_device,
     trt_max_workspace_size,
+    precision,
 ):
     if engine_type == "pytorch":
         return PyTorchEngine(model_path, execution_provider, input_size, conf_thres)
@@ -30,6 +31,7 @@ def create_engine(
             conf_thres,
             on_device,
             trt_max_workspace_size,
+            precision,
         )
     elif engine_type == "tensorrt":
         pass
@@ -102,6 +104,7 @@ class ONNXEngine(RAPiDEngine):
         conf_thres,
         on_device,
         trt_max_workspace_size,
+        precision,
     ):
         # self.execution_provider = execution_provider
         super().__init__(input_size, conf_thres)
@@ -117,6 +120,7 @@ class ONNXEngine(RAPiDEngine):
                 "trt_max_workspace_size": trt_max_workspace_size * 1024 * 1024 * 1024,
                 "trt_engine_cache_enable": True,
                 "trt_engine_cache_path": "trt_engine_cache",
+                "trt_fp16_enable": True if precision == "fp16" else False,
             }
             providers.insert(0, ("TensorrtExecutionProvider", trt_provider_options))
 

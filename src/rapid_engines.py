@@ -124,8 +124,13 @@ class ONNXEngine(RAPiDEngine):
             }
             providers.insert(0, ("TensorrtExecutionProvider", trt_provider_options))
 
+        sess_options = onnxruntime.SessionOptions()
+        sess_options.enable_profiling = True
+
         # Initialise RAPiD ONNX runtime session
-        self.engine = onnxruntime.InferenceSession(model_path, providers=providers)
+        self.engine = onnxruntime.InferenceSession(
+            model_path, providers=providers, sess_options=sess_options
+        )
 
         if on_device:
             self.io_binding = self.engine.io_binding()

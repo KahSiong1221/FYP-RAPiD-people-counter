@@ -103,4 +103,11 @@ def create_parser():
         help="maximum workspace size of TensorRT engine",
     )
 
+    ap.add_argument(
+        "--perf-profiling",
+        action="store_true",
+        default=False,
+        help="enable ONNX Runtime latency profiling",
+    )
+
     return ap

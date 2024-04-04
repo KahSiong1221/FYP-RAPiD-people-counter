@@ -20,6 +20,7 @@ def create_engine(
     on_device,
     trt_max_workspace_size,
     precision,
+    perf_profiling,
 ):
     if engine_type == "pytorch":
         return PyTorchEngine(model_path, execution_provider, input_size, conf_thres)
@@ -32,6 +33,7 @@ def create_engine(
             on_device,
             trt_max_workspace_size,
             precision,
+            perf_profiling,
         )
     elif engine_type == "tensorrt":
         pass
@@ -105,6 +107,7 @@ class ONNXEngine(RAPiDEngine):
         on_device,
         trt_max_workspace_size,
         precision,
+        perf_profiling,
     ):
         # self.execution_provider = execution_provider
         super().__init__(input_size, conf_thres)
@@ -125,7 +128,7 @@ class ONNXEngine(RAPiDEngine):
             providers.insert(0, ("TensorrtExecutionProvider", trt_provider_options))
 
         sess_options = onnxruntime.SessionOptions()
-        sess_options.enable_profiling = True
+        sess_options.enable_profiling = True if perf_profiling else False
 
         # Initialise RAPiD ONNX runtime session
         self.engine = onnxruntime.InferenceSession(

@@ -85,6 +85,7 @@ def main():
         on_device=args.on_device,
         trt_max_workspace_size=args.trt_max_workspace_size,
         precision=args.precision,
+        perf_profiling=args.perf_profiling,
     )
 
     for recursion_count in range(args.recursion):

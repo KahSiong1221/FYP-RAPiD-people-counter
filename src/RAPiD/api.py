@@ -135,17 +135,10 @@ class Detector():
         assert input_.dim() == 4
         device = next(self.model.parameters()).device
         input_ = input_.to(device=device)
-
-        # DEBUG
-        print(f"FRAME RAPiD type:{type(input_)} shape:{input_.shape} value:{input_}")
-
         with torch.no_grad():
             dts = self.model(input_).cpu()
 
         dts = dts.squeeze()
-
-        # DEBUG
-        print(f"DTS type:{type(dts)} shape:{dts.shape} value:{dts}")
         # post-processing
         dts = dts[dts[:,5] >= conf_thres]
         if len(dts) > 1000:

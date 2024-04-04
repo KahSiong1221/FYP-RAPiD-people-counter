@@ -174,9 +174,6 @@ class ONNXEngine(RAPiDEngine):
 
         detections = detections.squeeze(0)
 
-        # DEBUG
-        print(f"DTS type:{type(detections)} shape:{detections.shape} value:{detections}")
-
         # Post-processing
         return self.postprocess_detections(detections)
 

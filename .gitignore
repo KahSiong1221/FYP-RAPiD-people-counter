@@ -1,11 +1,20 @@
+# macos files
 /.DS_Store
+
+# video files
+*.avi
+*.mp4
+
+# AI model files
 *.ckpt
 *.pth
-*.avi
 *.onnx
-*.mp4
 *.trt
 *.engine
+
+# calibration dataset
+CEPDOF/
+CEPDOF_calib/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

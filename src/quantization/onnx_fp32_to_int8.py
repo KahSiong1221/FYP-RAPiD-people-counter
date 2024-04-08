@@ -85,7 +85,7 @@ def get_calibration_table(model_path, augmented_model_path, calibration_dataset)
         data_reader = RapidDataReader(
             calibration_dataset=calibration_dataset,
             input_size=FRAME_SIZE,
-            start_index=0,
+            start_index=start_index,
             end_index=start_index + STRIDE,
             stride=STRIDE,
             batch_size=BATCH_SIZE,

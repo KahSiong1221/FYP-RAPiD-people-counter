@@ -88,7 +88,7 @@ def rapid_preprocess_func(images_folder, input_size, start_index=0, size_limit=0
 
 
 class ObejctDetectionDataReader(CalibrationDataReader):
-    def __init__(self, model_path="int8_model.onnx"):
+    def __init__(self, model_path="augmented_model.onnx"):
         self.model_path = model_path
         self.preprocess_flag = None
         self.start_index = 0

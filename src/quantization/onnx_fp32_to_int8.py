@@ -76,7 +76,6 @@ def get_calibration_table(model_path, augmented_model_path, calibration_dataset)
             "symmetric": True
         },  # TensorRT requires symmetric quantization scheme
     )
-    print("[INFO] calibrator created")
     calibrator.set_execution_providers(["CUDAExecutionProvider"])
 
     total_data_size = len(os.listdir(calibration_dataset))
@@ -92,9 +91,7 @@ def get_calibration_table(model_path, augmented_model_path, calibration_dataset)
             batch_size=BATCH_SIZE,
             model_path=augmented_model_path,
         )
-        print("[INFO] data reader created")
         calibrator.collect_data(data_reader)
-        print("[INFO] calibrator collected data")
         start_index += STRIDE
 
     # write_calibration_table(calibrator.compute_data())

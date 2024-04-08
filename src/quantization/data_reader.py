@@ -160,8 +160,6 @@ class RapidDataReader(ObejctDetectionDataReader):
         if self.start_index < self.end_index:
             if self.batch_size == 1:
                 data = self.load_serial()
-                print(data)
-                quit()
             else:
                 data = self.load_batches()
 
@@ -198,6 +196,8 @@ class RapidDataReader(ObejctDetectionDataReader):
                 nchw_data = nchw_data_list[i]
                 file_name = filename_list[i]
                 data.append({input_name: nchw_data})
+
+        print(data)
         return data
 
     def load_batches(self):

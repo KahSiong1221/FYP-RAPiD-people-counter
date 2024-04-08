@@ -73,7 +73,8 @@ def rapid_preprocess_func(images_folder, input_size, start_index=0, size_limit=0
     )
 
     for image_name in batch_filenames:
-        image_filepath = images_folder + "/" + image_name
+        image_filepath = os.path.join(images_folder, image_name)
+        print(f"[DEBUG] processing {image_filepath}")
 
         img = cv2.imread(image_filepath)
         image_data = _preprocess_rapid(img, input_size)

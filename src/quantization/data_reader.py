@@ -4,9 +4,12 @@ import numpy as np
 import cv2
 import PIL
 
-from ..RAPiD.utils import utils as rapid_utils
-
+import sys
 import os
+
+sys.path.insert(1, "..")
+
+from RAPiD.utils import utils as rapid_utils
 
 
 def parse_annotations(filename):

@@ -197,7 +197,6 @@ class RapidDataReader(ObejctDetectionDataReader):
                 file_name = filename_list[i]
                 data.append({input_name: nchw_data})
 
-        print(data)
         return data
 
     def load_batches(self):

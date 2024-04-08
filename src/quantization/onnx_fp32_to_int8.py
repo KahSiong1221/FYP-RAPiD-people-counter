@@ -10,7 +10,7 @@ from onnxruntime.quantization import (
 from data_reader import RapidDataReader
 
 FRAME_SIZE = 1024
-STRIDE = 10
+STRIDE = 5
 BATCH_SIZE = 1
 
 

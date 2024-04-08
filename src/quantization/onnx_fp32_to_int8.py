@@ -18,19 +18,19 @@ def argparser_init():
     ap = argparse.ArgumentParser()
 
     ap.add_argument(
-        "-i",
-        "--input-model",
+        "-m",
+        "--model",
         required=True,
         type=str,
         help="path to required pre-trained ONNX model",
     )
 
     ap.add_argument(
-        "-o",
-        "--output-model",
-        required=True,
+        "-t",
+        "--augmented-model",
+        default="augmented_model.onnx",
         type=str,
-        help="path to store the quantized ONNX model",
+        help="path to temporary ONNX model used during calibration",
     )
 
     ap.add_argument(
@@ -70,7 +70,7 @@ def get_calibration_table(model_path, augmented_model_path, calibration_dataset)
         model=model_path,
         op_types_to_calibrate=None,
         augmented_model_path=augmented_model_path,
-        calibrate_method=CalibrationMethod.MinMax,
+        calibrate_method=CalibrationMethod.Entropy,
         use_external_data_format=False,  # True if model size >= 2GB
         extra_options={
             "symmetric": True
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     os.environ["ORT_TENSORRT_ENGINE_CACHE_ENABLE"] = "1"  # Enable engine caching
     execution_provider = ["TensorrtExecutionProvider"]
 
-    get_calibration_table(args.input_model, args.output_model, args.calib_dataset)
+    get_calibration_table(args.model, args.augmented_model, args.calib_dataset)
 
     if args.eval:
         if args.eval_dataset is None:
@@ -131,5 +131,5 @@ if __name__ == "__main__":
             quit()
 
         get_prediction_evaluation(
-            args.input_model, args.eval_dataset, args.anns_file, execution_provider
+            args.model, args.eval_dataset, args.anns_file, execution_provider
         )

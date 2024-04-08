@@ -113,6 +113,12 @@ class ObejctDetectionDataReader(CalibrationDataReader):
 
 
 class RapidDataReader(ObejctDetectionDataReader):
+    """
+    A subclass of CalibrationDataReader specifically designed for handling
+    image data for calibration in RAPiD. This reader loads, preprocesses,
+    and provides images for model calibration.
+    """
+
     def __init__(
         self,
         calibration_dataset,
@@ -121,7 +127,7 @@ class RapidDataReader(ObejctDetectionDataReader):
         end_index=0,
         stride=1,
         batch_size=1,
-        model_path="rapid_int8.onnx",
+        model_path="augmented_model.onnx",
         is_evaluation=False,
         annotations="./CEPDOF_calib/annotations/instances_eval.json",
         preprocess_func=rapid_preprocess_func,
@@ -130,7 +136,7 @@ class RapidDataReader(ObejctDetectionDataReader):
         self.image_folder = calibration_dataset
         self.model_path = model_path
         self.preprocess_flag = True
-        self.enum_data_dicts = iter([])
+        self.enum_data_dicts = iter([])  # an interator over the image paths
         self.input_size = input_size
         self.start_index = start_index
         self.end_index = (
@@ -154,6 +160,8 @@ class RapidDataReader(ObejctDetectionDataReader):
         if self.start_index < self.end_index:
             if self.batch_size == 1:
                 data = self.load_serial()
+                print(data)
+                quit()
             else:
                 data = self.load_batches()
 

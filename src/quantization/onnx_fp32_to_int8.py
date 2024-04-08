@@ -94,7 +94,7 @@ def get_calibration_table(model_path, augmented_model_path, calibration_dataset)
         calibrator.collect_data(data_reader)
         start_index += STRIDE
 
-    write_calibration_table(calibrator.compute_range())
+    write_calibration_table(calibrator.compute_data())
     print("[INFO] calibration table generated and saved")
 
 

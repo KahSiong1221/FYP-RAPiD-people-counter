@@ -70,7 +70,7 @@ def get_calibration_table(model_path, augmented_model_path, calibration_dataset)
         model=model_path,
         op_types_to_calibrate=None,
         augmented_model_path=augmented_model_path,
-        calibrate_method=CalibrationMethod.Entropy,
+        calibrate_method=CalibrationMethod.MinMax,
         use_external_data_format=False,  # True if model size >= 2GB
         extra_options={
             "symmetric": True

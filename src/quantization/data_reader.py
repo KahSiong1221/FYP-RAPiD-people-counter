@@ -153,7 +153,6 @@ class RapidDataReader(ObejctDetectionDataReader):
     def get_next(self):
         iter_data = next(self.enum_data_dicts, None)
         if iter_data:
-            print(f"[DEBUG] {iter_data}")
             return iter_data
 
         self.enum_data_dicts = None

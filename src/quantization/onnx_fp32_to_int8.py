@@ -76,7 +76,7 @@ def get_calibration_table(model_path, augmented_model_path, calibration_dataset)
             "symmetric": True
         },  # TensorRT requires symmetric quantization scheme
     )
-    calibrator.set_execution_providers(["CUDAExecutionProvider"])
+    calibrator.set_execution_providers(["CUDAExecutionProvider", "CPUExecutionProvider"])
 
     total_data_size = len(os.listdir(calibration_dataset))
     start_index = 0

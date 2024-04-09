@@ -10,9 +10,9 @@ from onnxruntime.quantization import (
 from data_reader import RapidDataReader
 
 FRAME_SIZE = 1024
-STRIDE = 5
 BATCH_SIZE = 1
 TRT_CACHE_DIR = "./trt_engine_cache"
+
 
 def argparser_init():
     ap = argparse.ArgumentParser()
@@ -31,6 +31,14 @@ def argparser_init():
         default="augmented_model.onnx",
         type=str,
         help="path to temporary ONNX model used during calibration",
+    )
+
+    ap.add_argument(
+        "-s",
+        "--stride",
+        default=5,
+        type=int,
+        help="# of images could be process at a time, higher number will cost more memory",
     )
 
     ap.add_argument(
@@ -65,7 +73,9 @@ def argparser_init():
     return ap
 
 
-def get_calibration_table(model_path, augmented_model_path, calibration_dataset):
+def get_calibration_table(
+    model_path, augmented_model_path, calibration_dataset, stride
+):
     calibrator = create_calibrator(
         model=model_path,
         op_types_to_calibrate=None,
@@ -83,18 +93,18 @@ def get_calibration_table(model_path, augmented_model_path, calibration_dataset)
     total_data_size = len(os.listdir(calibration_dataset))
     start_index = 0
 
-    for i in range(0, total_data_size, STRIDE):
+    for i in range(0, total_data_size, stride):
         data_reader = RapidDataReader(
             calibration_dataset=calibration_dataset,
             input_size=FRAME_SIZE,
             start_index=start_index,
-            end_index=start_index + STRIDE,
-            stride=STRIDE,
+            end_index=start_index + stride,
+            stride=stride,
             batch_size=BATCH_SIZE,
             model_path=augmented_model_path,
         )
         calibrator.collect_data(data_reader)
-        start_index += STRIDE
+        start_index += stride
 
     """
         # write_calibration_table(calibrator.compute_range())
@@ -152,7 +162,9 @@ if __name__ == "__main__":
     os.environ["ORT_TENSORRT_ENGINE_CACHE_ENABLE"] = "1"  # Enable engine caching
     execution_provider = ["TensorrtExecutionProvider"]
 
-    get_calibration_table(args.model, args.augmented_model, args.calib_dataset)
+    get_calibration_table(
+        args.model, args.augmented_model, args.calib_dataset, args.stride
+    )
 
     if args.eval:
         if args.eval_dataset is None:

@@ -123,8 +123,15 @@ class ONNXEngine(RAPiDEngine):
                 "trt_max_workspace_size": trt_max_workspace_size * 1024 * 1024 * 1024,
                 "trt_engine_cache_enable": True,
                 "trt_engine_cache_path": "trt_engine_cache",
-                "trt_fp16_enable": True if precision == "fp16" else False,
             }
+            if precision == "fp16":
+                trt_provider_options["trt_fp16_enable"] = True
+            elif precision == "int8":
+                trt_provider_options["trt_int8_enable"] = True
+                trt_provider_options["trt_int8_calibration_table_name"] = (
+                    "calibration.flatbuffers"
+                )
+
             providers.insert(0, ("TensorrtExecutionProvider", trt_provider_options))
 
         sess_options = onnxruntime.SessionOptions()

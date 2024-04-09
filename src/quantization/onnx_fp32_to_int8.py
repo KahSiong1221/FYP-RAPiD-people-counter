@@ -11,7 +11,7 @@ from data_reader import RapidDataReader
 
 FRAME_SIZE = 1024
 BATCH_SIZE = 1
-TRT_CACHE_DIR = "./trt_engine_cache"
+TRT_CACHE_DIR = "trt_engine_cache"
 
 
 def argparser_init():
@@ -111,7 +111,7 @@ def get_calibration_table(
         The original code from example: https://github.com/microsoft/onnxruntime-inference-examples/blob/main/quantization/object_detection/trt/yolov3/e2e_user_yolov3_example.py
         but it is not working because they replaced compute_range() with 
         compute_data() in the calibrator API but didn't update the example
-        and write_calibration_table(), it is using old data structure.
+        and write_calibration_table(), it is using old data structure https://github.com/microsoft/onnxruntime/commit/d0316ee7688bd8fd795751aaad9e926c409a1532#diff-75e84436a983e17527f8b5bc585087e7ad75b3b515c2101c2a82dcaecca490de.
         So we have to manually change the new data structure back to the old one,
         data is returned by calibrator.compute_data().
 
@@ -156,11 +156,24 @@ if __name__ == "__main__":
     # TensorRT EP INT8 settings
     os.environ["ORT_TENSORRT_FP16_ENABLE"] = "1"  # Enable FP16 precision
     os.environ["ORT_TENSORRT_INT8_ENABLE"] = "1"  # Enable INT8 precision
-    os.environ["ORT_TENSORRT_INT8_CALIBRATION_TABLE_NAME"] = (
-        "calibration.flatbuffers"  # Calibration table name
-    )
+    os.environ["ORT_TENSORRT_INT8_CALIBRATION_TABLE_NAME"] = os.path.join(
+        TRT_CACHE_DIR, "calibration.flatbuffers"
+    )  # Calibration table name
     os.environ["ORT_TENSORRT_ENGINE_CACHE_ENABLE"] = "1"  # Enable engine caching
     execution_provider = ["TensorrtExecutionProvider"]
+
+    execution_provider = [
+        (
+            "TensorrtExecutionProvider",
+            {
+                "trt_max_work_space_size": 2 * 1024 * 1024 * 1024,
+                "trt_engine_cache_enable": True,
+                "trt_engine_cache_path": TRT_CACHE_DIR,
+                "trt_int8_enable": True,
+                "trt_int8_calibration_table_name": "calibration.flatbuffers",
+            },
+        )
+    ]
 
     get_calibration_table(
         args.model, args.augmented_model, args.calib_dataset, args.stride

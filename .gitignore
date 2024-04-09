@@ -15,6 +15,7 @@
 # calibration dataset
 CEPDOF/
 CEPDOF_calib/
+CEPDOF_calib_mini/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

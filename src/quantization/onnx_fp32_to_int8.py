@@ -112,7 +112,8 @@ def get_calibration_table(model_path, augmented_model_path, calibration_dataset)
         compute_range = {"L": [0.1, 0.1], "Q": [0.1, 0.1], ......}
     """
     
-    print(calibrator.compute_data())
+    tensors_data = calibrator.compute_data()
+    print(tensors_data.data)
 
     
 

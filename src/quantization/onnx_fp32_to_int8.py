@@ -12,7 +12,7 @@ from data_reader import RapidDataReader
 FRAME_SIZE = 1024
 STRIDE = 5
 BATCH_SIZE = 1
-
+TRT_CACHE_DIR = "./trt_engine_cache"
 
 def argparser_init():
     ap = argparse.ArgumentParser()
@@ -108,19 +108,12 @@ def get_calibration_table(model_path, augmented_model_path, calibration_dataset)
         Old {tensor node name: [min_range, max_range]}, example:
         compute_range = {"L": [0.1, 0.1], "Q": [0.1, 0.1], ......}
 
-        New {tensor node name: TensorsData([min_range, max_range])}, example:
+        New {tensor node name: TensorData([min_range, max_range])}, example:
         compute_range = {"L": [0.1, 0.1], "Q": [0.1, 0.1], ......}
     """
-    
-    tensors_data = calibrator.compute_data()
-    for k,tensordata in tensors_data.data.items():
-        print(f"{k} : [", end="")
-        for k1,v1 in tensordata.items():
-            print(f"{k1}:{v1}, ", end="")
-        print("]")
 
-    
-
+    calib_ranges = parse_tensors_data(calibrator.compute_data())
+    write_calibration_table(calib_ranges, dir=TRT_CACHE_DIR)
     print("[INFO] calibration table generated and saved")
 
 
@@ -129,8 +122,26 @@ def get_prediction_evaluation(model_path, eval_dataset, anns_file, providers):
     pass
 
 
+def parse_tensors_data(tensors_data):
+    """Parse TensorsData to a dictionary for write_calibration_table()"""
+    calib_ranges = {}
+
+    for tensor_node, tensor_data in tensors_data.data.items():
+        min_range, max_range = tensor_data.range_value
+        calib_ranges[tensor_node] = (float(min_range.item()), float(max_range.item()))
+
+    return calib_ranges
+
+
 if __name__ == "__main__":
     args = argparser_init().parse_args()
+
+    # Create TensorRT engine cache folder if not exists
+    try:
+        os.makedirs(TRT_CACHE_DIR)
+        print(f"[INFO] created {TRT_CACHE_DIR} folder")
+    except FileExistsError:
+        pass
 
     # TensorRT EP INT8 settings
     os.environ["ORT_TENSORRT_FP16_ENABLE"] = "1"  # Enable FP16 precision

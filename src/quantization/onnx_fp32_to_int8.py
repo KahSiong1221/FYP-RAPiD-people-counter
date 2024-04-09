@@ -113,7 +113,8 @@ def get_calibration_table(model_path, augmented_model_path, calibration_dataset)
     """
     
     tensors_data = calibrator.compute_data()
-    print(tensors_data.data)
+    for k,v in tensors_data.data.items():
+        print(f"{k} : {v}")
 
     
 

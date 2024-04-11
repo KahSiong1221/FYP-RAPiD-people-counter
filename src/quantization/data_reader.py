@@ -121,7 +121,7 @@ class RapidDataReader(ObejctDetectionDataReader):
     def __init__(
         self,
         calibration_dataset,
-        input_size=1024,
+        input_size,
         start_index=0,
         end_index=0,
         stride=1,

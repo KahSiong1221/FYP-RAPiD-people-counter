@@ -119,6 +119,13 @@ TODO:
         - Orin > FPS: [23.4, 23.34, 23.37, 23.41, 23.49, 23.36, 23.41, 23.46, 23.39, 23.42]
         - RTX4090 > FPS: [93.84, 95.34, 93.53, 92.59, 92.69, 93.36, 92.1, 92.81, 92.31, 92.54]
                     FPS: [93.39, 91.74, 90.35, 90.57, 92.33, 94.29, 92.0, 93.13, 92.96, 91.93]
+    - ONNX+TensorRT (trt_max_workspace_size = 4GB) [1024][INT8]
+        - Xavier NX
+        * using calibration data from rtx4090 *
+        - (v)Orin > FPS: [24.36, 24.29, 24.40, 24.47, 24.53, 24.46, 24.37, 24.50, 24.51, 24.46]
+        - (v)RTX4090 > FPS: [98.08, 98.72, 97.03, 98.81, 97.16, 97.72, 97.34, 97.61, 97.96, 96.83]
+        * using calibration data from orin *
+        - (v)Orin > FPS: [24.36, 24.31, 24.34, 24.39, 24.27, 24.31, 24.3, 24.27, 24.32, 24.27]
     - ONNX+TensorRT (trt_max_workspace_size = 4GB)
         - Xavier NX > FPS: [13.45, 13.6, 13.66, 13.72, 13.66, 13.51, 13.52, 13.51, 13.5, 13.4]
         - Orin
@@ -138,3 +145,10 @@ ONNX+TensorRT
 rtx4090 run RAPiD on all frames
 testvideo5.mp4 - FPS: [30.31, 30.05, 29.79, 29.97, 30.24, 29.95, 29.88, 29.91, 30.21, 30.15]
 testvideo3.mp4 - FPS: [30.65, 30.87, 31.11, 31.2, 30.87, 31.23, 30.99, 30.74, 31.02, 30.79]
+
+Orin took 17minutes to build the int8 tensorrt engine
+
+Orin 5:24 start processing calibration, 5 imgs at once, will process 800 imgs
+finish at 8:07
+
+quantized model not taking 608 input size as it was calibrated and built for 1080

@@ -9,7 +9,6 @@ from onnxruntime.quantization import (
 
 from data_reader import RapidDataReader
 
-FRAME_SIZE = 1024
 BATCH_SIZE = 1
 TRT_CACHE_DIR = "trt_engine_cache"
 
@@ -70,11 +69,19 @@ def argparser_init():
         help="run evaluation on quantized model",
     )
 
+    ap.add_argument(
+        "-f",
+        "--framesize",
+        type=int,
+        default=1024,
+        help="frame size of input frames",
+    )
+
     return ap
 
 
 def get_calibration_table(
-    model_path, augmented_model_path, calibration_dataset, stride
+    model_path, augmented_model_path, calibration_dataset, stride, framesize
 ):
     calibrator = create_calibrator(
         model=model_path,
@@ -96,7 +103,7 @@ def get_calibration_table(
     for i in range(0, total_data_size, stride):
         data_reader = RapidDataReader(
             calibration_dataset=calibration_dataset,
-            input_size=FRAME_SIZE,
+            input_size=framesize,
             start_index=start_index,
             end_index=start_index + stride,
             stride=stride,
@@ -176,7 +183,7 @@ if __name__ == "__main__":
     ]
 
     get_calibration_table(
-        args.model, args.augmented_model, args.calib_dataset, args.stride
+        args.model, args.augmented_model, args.calib_dataset, args.stride, args.framesize
     )
 
     if args.eval:
